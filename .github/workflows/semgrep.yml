@@ -36,8 +36,8 @@ jobs:
     steps:
       # Fetch project source with GitHub Actions Checkout.
       - uses: actions/checkout@v4
-        #with:
-        #  fetch-depth: 0
+        with:
+          fetch-depth: 20
 
       - name: Mark the directory as safe for Git
         run: |
