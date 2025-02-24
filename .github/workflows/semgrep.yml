@@ -57,7 +57,7 @@ jobs:
           
           if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             echo "Direct commit to main/master branch detected."
-            BASELINE=$(git log --format="%H" -n 1 origin/main)
+            BASELINE=$(git log --format="%H" -n 2 origin/main)
             echo "baseline commit: $BASELINE"
             semgrep ci --baseline-commit=$BASELINE --dry-run
             
@@ -70,5 +70,3 @@ jobs:
           fi
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-          #SEMGREP_GITHUB_SHA: ${{ github.sha }}
-          #SEMGREP_GITHUB_REF: ${{ github.ref }}
