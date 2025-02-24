@@ -57,11 +57,9 @@ jobs:
           
           if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             echo "Direct commit to main/master branch detected."
-            LAST_COMMIT=$(git log --format="%H" -n 3 origin/main)
-            echo "Last commit: $LAST_COMMIT"
-            BASELINE=$(git log --format="%H" -n 3 origin/main | tail -n 1)
+            BASELINE=$(git log --format="%H" -n 2 origin/main | tail -n 1)
             echo "baseline commit: $BASELINE"
-            semgrep ci --baseline-commit=$BASELINE --dry-run
+            semgrep ci --baseline-commit=$BASELINE
             
           elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             # It's a PR, perform a diff scan
