@@ -40,26 +40,24 @@ jobs:
         run: |
           git config --global --add safe.directory '*'
 
-      - name: Run diff or full scan based on context
+      - name: Run diff scans based on context
         run: |
-          # Check if the commit is a merge commit by counting parents
-          if [[ $(git rev-list --parents -n 1 HEAD | wc -w) -gt 2 ]]; then
-            echo "Merge commit detected, skipping scan."
-            exit 0
-          fi
-          
           # Check if it's a direct commit to the main branch
           if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            echo "Direct commit to main branch detected."
-            BASELINE=$(git log --format="%H" -n 2 origin/main | tail -n 1)
-            echo "Baseline commit: $BASELINE"
-            semgrep ci --baseline-commit=$BASELINE
-
+            echo "Commit to main branch detected."
+            # Check if the commit is a merge commit by counting parents
+            if [[ $(git rev-list --parents -n 1 HEAD | wc -w) -gt 2 ]]; then
+              echo "Merge commit detected, skipping scan."
+            else
+              echo "Run a diff scan when committing a change to main branch, as it not a merge commit"
+              BASELINE=$(git log --format="%H" -n 2 origin/main | tail -n 1)
+              echo "Baseline commit: $BASELINE"
+              semgrep ci --baseline-commit=$BASELINE
+            fi
           elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             # It's a PR, perform a diff scan
             echo "PR detected, running diff scan..."
             semgrep ci
-
           else
             echo "No matching commit or PR detected."
           fi
