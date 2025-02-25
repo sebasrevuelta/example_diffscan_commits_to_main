@@ -12,11 +12,9 @@ on:
   # Scan on-demand through GitHub Actions interface:
   workflow_dispatch: {}
 
-  
   # Schedule the CI job to run on a regular basis:
   schedule:
     - cron: '20 17 * * *'  # Every day at 17:20 UTC
-    # You can adjust this to fit your schedule timing
 
 permissions:
   contents: read
@@ -32,7 +30,6 @@ jobs:
     # Skip any PR created by dependabot to avoid permission issues:
     if: (github.actor != 'dependabot[bot]')
 
-
     steps:
       # Fetch project source with GitHub Actions Checkout.
       - uses: actions/checkout@v4
@@ -42,29 +39,27 @@ jobs:
       - name: Mark the directory as safe for Git
         run: |
           git config --global --add safe.directory '*'
-          
-      - name: Skip scan if the commit is a merge commit
-        if: contains(github.event.head_commit.message, 'Merge pull request')
-        run: |
-          echo "A pull request was merged into the main branch, skipping scan."
-          exit 0
-      
-      # Run diff or full scan based on context
-          
+
       - name: Run diff or full scan based on context
         run: |
-          # Check if it's a direct commit to main/master branch
+          # Check if the commit is a merge commit by counting parents
+          if [[ $(git rev-list --parents -n 1 HEAD | wc -w) -gt 2 ]]; then
+            echo "Merge commit detected, skipping scan."
+            exit 0
+          fi
           
+          # Check if it's a direct commit to the main branch
           if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            echo "Direct commit to main/master branch detected."
+            echo "Direct commit to main branch detected."
             BASELINE=$(git log --format="%H" -n 2 origin/main | tail -n 1)
-            echo "baseline commit: $BASELINE"
+            echo "Baseline commit: $BASELINE"
             semgrep ci --baseline-commit=$BASELINE
-            
+
           elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             # It's a PR, perform a diff scan
             echo "PR detected, running diff scan..."
             semgrep ci
+
           else
             echo "No matching commit or PR detected."
           fi
